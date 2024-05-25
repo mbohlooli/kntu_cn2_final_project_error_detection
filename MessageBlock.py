@@ -47,7 +47,17 @@ class ArrayMessageBlock(MessageBlock):
             print(f'encoded data: {self.message}')
 
     def read(self, verbose: bool = False) -> str:
-        pass
+        result = ''
+
+        for index, message_bit in enumerate(self.message):
+            if index == 0 or log2(index).is_integer():
+                continue
+            result += str(message_bit)
+
+        if verbose:
+            print(f'decoded data: {result}')
+
+        return result
 
     def validate(self, verbose: bool = False) -> None:
         pass
