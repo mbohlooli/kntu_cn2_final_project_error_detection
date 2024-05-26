@@ -25,10 +25,13 @@ class MessageBlock(ABC):
 
 
 class ArrayMessageBlock(MessageBlock):
-    def __init__(self, encoding=HAMMING_ENCODE, block_size=16):
+    def __init__(self, encoding=HAMMING_ENCODE, data='', block_size=16):
         super().__init__(encoding)
         self.block_size = block_size
         self.message = [0 for _ in range(block_size)]
+
+        if len(data) > 0:
+            self.write(data)
 
     def write(self, data: str, verbose: bool = False) -> None:
         if self.encoding == HAMMING_ENCODE:
@@ -38,9 +41,13 @@ class ArrayMessageBlock(MessageBlock):
         if self.encoding == HAMMING_ENCODE:
             return self._read_hamming(verbose)
 
-    def validate(self, verbose: bool = False) -> None:
+    def validate(self, verbose: bool = False, inplace: bool = False) -> bool:
         if self.encoding == HAMMING_ENCODE:
-            self._validate_message_hamming(verbose)
+            return self._validate_message_hamming(verbose, inplace)
+        return False
+
+    def __str__(self):
+        return ''.join(map(str, self.message))
 
     def _read_hamming(self, verbose: bool = False) -> str:
         self.validate(verbose)
@@ -98,17 +105,20 @@ class ArrayMessageBlock(MessageBlock):
 
         self.message[0] = total_ones_count % 2
 
-    def _validate_message_hamming(self, verbose: bool = False):
-        error_position = reduce(xor, [i for i, bit in enumerate(self.message) if bit])
+    def _validate_message_hamming(self, verbose: bool = False, inplace: bool = False):
+        error_position = reduce(xor, [i for i, bit in enumerate(self.message) if bit], 0)
         if error_position == 0:
             if verbose:
                 print('No Errors detected')
-            return
+            return True
 
-        self.message[error_position] = 1 - self.message[error_position]
+        if inplace:
+            self.message[error_position] = 1 - self.message[error_position]
 
         if verbose:
             print(f'Error at index {error_position}')
+
+        return False
 
 # TODO: do we really need this?
 class MatrixMessageBlock(MessageBlock):
