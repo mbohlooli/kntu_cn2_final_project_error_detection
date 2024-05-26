@@ -6,10 +6,8 @@ PARITY_2D_ENCODE = "parity_2d"
 
 
 class MessageBlock(ABC):
-    @property
-    @abstractmethod
-    def encoding(self) -> str:
-        pass
+    def __init__(self, encoding):
+        self.encoding = encoding
 
     @abstractmethod
     def write(self, data: str, verbose: bool = False) -> None:
@@ -25,14 +23,18 @@ class MessageBlock(ABC):
 
 
 class ArrayMessageBlock(MessageBlock):
-    def __init__(self):
-        self.message = [0 for _ in range(16)]
+    def __init__(self, encoding=HAMMING_ENCODE, block_size=16):
+        super().__init__(encoding)
+        self.block_size = block_size
+        self.message = [0 for _ in range(block_size)]
 
     def write(self, data: str, verbose: bool = False) -> None:
-        if len(data) > 11:
+        max_data_length = self.block_size - 1 - int(log2(self.block_size))
+
+        if len(data) > max_data_length:
             raise ValueError("Data is too long")
 
-        while len(data) < 11:
+        while len(data) < max_data_length:
             data += '0'
 
         data_reversed = list(map(int, data[::-1]))
@@ -42,6 +44,8 @@ class ArrayMessageBlock(MessageBlock):
                 continue
 
             self.message[index] = data_reversed.pop()
+
+        self._fill_redundancy_bits_hamming()
 
         if verbose:
             print(f'encoded data: {self.message}')
@@ -62,10 +66,28 @@ class ArrayMessageBlock(MessageBlock):
     def validate(self, verbose: bool = False) -> None:
         pass
 
-    def encoding(self) -> str:
-        return HAMMING_ENCODE
+    # TODO: accept different encodings
+    def _fill_redundancy_bits_hamming(self):
+        number_of_checks = int(log2(self.block_size))
+
+        for i in range(number_of_checks):
+            ones_count = 0
+            for index, message_bit in enumerate(self.message):
+                bin_index = format(index, f'0{int(log2(self.block_size))}b')
+                if bin_index[-i-1] == '1':
+                    if message_bit == 1:
+                        ones_count += 1
+            self.message[2**i] = ones_count % 2
+
+        total_ones_count = 0
+        for message_bit in self.message:
+            if message_bit == 1:
+                total_ones_count += 1
+
+        self.message[0] = total_ones_count % 2
 
 
+# TODO: do we really need this?
 class MatrixMessageBlock(MessageBlock):
     def write(self, data: str, verbose: bool = False) -> None:
         pass
@@ -75,6 +97,3 @@ class MatrixMessageBlock(MessageBlock):
 
     def validate(self, verbose: bool = False) -> None:
         pass
-
-    def encoding(self) -> str:
-        return PARITY_2D_ENCODE
