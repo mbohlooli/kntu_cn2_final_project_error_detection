@@ -1,9 +1,8 @@
-from MessageBlock import *
 from Packetizer import Packetizer
 
 if __name__ == '__main__':
-    packetizer = Packetizer()
-    packets = packetizer.packetize('lo')
+    packetizer = Packetizer(16)
+    packets = packetizer.packetize('hello world!')
 
     packets[1].message[7] = 1 - packets[1].message[7]
 

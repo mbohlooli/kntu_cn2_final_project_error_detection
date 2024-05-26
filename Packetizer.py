@@ -4,6 +4,8 @@ from math import log2
 
 class Packetizer:
     def __init__(self, packet_size=16):
+        if not log2(packet_size).is_integer():
+            raise ValueError("Packet size must be a power of 2")
         self.packet_size = packet_size
 
     def packetize(self, packet_data: str) -> list[MessageBlock]:
@@ -14,7 +16,7 @@ class Packetizer:
         for i in range(0, len(bin_data), data_in_packet_size):
             data_chunks.append(bin_data[i:i + data_in_packet_size])
 
-        return list(map(lambda data: ArrayMessageBlock(data=data), data_chunks))
+        return list(map(lambda data: ArrayMessageBlock(data=data, block_size=self.packet_size), data_chunks))
 
     @staticmethod
     def de_packetize(packets: list[MessageBlock], fix_errors: bool = True, verbose: bool = False) -> str:
