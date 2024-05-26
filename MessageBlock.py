@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from functools import reduce
+from operator import xor
 from math import log2
 
 HAMMING_ENCODE = "hamming"
@@ -29,6 +31,33 @@ class ArrayMessageBlock(MessageBlock):
         self.message = [0 for _ in range(block_size)]
 
     def write(self, data: str, verbose: bool = False) -> None:
+        if self.encoding == HAMMING_ENCODE:
+            self._write_hamming(data, verbose)
+
+    def read(self, verbose: bool = False) -> str:
+        if self.encoding == HAMMING_ENCODE:
+            return self._read_hamming(verbose)
+
+    def validate(self, verbose: bool = False) -> None:
+        if self.encoding == HAMMING_ENCODE:
+            self._validate_message_hamming(verbose)
+
+    def _read_hamming(self, verbose: bool = False) -> str:
+        self.validate(verbose)
+
+        result = ''
+
+        for index, message_bit in enumerate(self.message):
+            if index == 0 or log2(index).is_integer():
+                continue
+            result += str(message_bit)
+
+        if verbose:
+            print(f'decoded data: {result}')
+
+        return result
+
+    def _write_hamming(self, data: str, verbose: bool = False) -> None:
         max_data_length = self.block_size - 1 - int(log2(self.block_size))
 
         if len(data) > max_data_length:
@@ -50,23 +79,6 @@ class ArrayMessageBlock(MessageBlock):
         if verbose:
             print(f'encoded data: {self.message}')
 
-    def read(self, verbose: bool = False) -> str:
-        result = ''
-
-        for index, message_bit in enumerate(self.message):
-            if index == 0 or log2(index).is_integer():
-                continue
-            result += str(message_bit)
-
-        if verbose:
-            print(f'decoded data: {result}')
-
-        return result
-
-    def validate(self, verbose: bool = False) -> None:
-        pass
-
-    # TODO: accept different encodings
     def _fill_redundancy_bits_hamming(self):
         number_of_checks = int(log2(self.block_size))
 
@@ -86,6 +98,17 @@ class ArrayMessageBlock(MessageBlock):
 
         self.message[0] = total_ones_count % 2
 
+    def _validate_message_hamming(self, verbose: bool = False):
+        error_position = reduce(xor, [i for i, bit in enumerate(self.message) if bit])
+        if error_position == 0:
+            if verbose:
+                print('No Errors detected')
+            return
+
+        self.message[error_position] = 1 - self.message[error_position]
+
+        if verbose:
+            print(f'Error at index {error_position}')
 
 # TODO: do we really need this?
 class MatrixMessageBlock(MessageBlock):
