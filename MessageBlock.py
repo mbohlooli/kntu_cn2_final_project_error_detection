@@ -20,7 +20,7 @@ class MessageBlock(ABC):
         pass
 
     @abstractmethod
-    def validate(self, verbose: bool = False) -> None:
+    def validate(self, verbose: bool = False, inplace: bool = False) -> None:
         pass
 
 
