@@ -116,6 +116,8 @@ class ArrayMessageBlock(MessageBlock):
             self.message[error_position] = 1 - self.message[error_position]
 
         if verbose:
+            if inplace:
+                print('Fixing: ', end='')
             print(f'Error at index {error_position}')
 
         return False

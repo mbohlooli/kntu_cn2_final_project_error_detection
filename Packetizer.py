@@ -15,3 +15,16 @@ class Packetizer:
             data_chunks.append(bin_data[i:i + data_in_packet_size])
 
         return list(map(lambda data: ArrayMessageBlock(data=data), data_chunks))
+
+    @staticmethod
+    def de_packetize(packets: list[MessageBlock], fix_errors: bool = True, verbose: bool = False) -> str:
+        received_message_bin = ''
+        for index, packet in enumerate(packets):
+            if verbose:
+                print(f'Packet {index + 1} - ', end='')
+            if not packet.validate(verbose, fix_errors) and verbose:
+                print(f'Error {"fixed" if fix_errors else "at"} at packet {index + 1}')
+            received_message_bin += packet.read()
+
+        return ''.join(
+            chr(int(received_message_bin[i:i + 8], 2)) for i in range(0, len(received_message_bin), 8))

@@ -7,14 +7,6 @@ if __name__ == '__main__':
 
     packets[1].message[7] = 1 - packets[1].message[7]
 
-    received_message_bin = ''
-    for index, packet in enumerate(packets):
-        print(f'Packet {index + 1} - ', end='')
-        if not packet.validate(True):
-            print(f'Error Detected at packet {index + 1}')
-        received_message_bin += packet.read()
-
-    received_message = ''.join(
-        chr(int(received_message_bin[i:i + 8], 2)) for i in range(0, len(received_message_bin), 8))
+    received_message = packetizer.de_packetize(packets, True, True)
 
     print(f'data of the packet: {received_message}')
