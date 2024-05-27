@@ -9,15 +9,16 @@ class HammingEncoder(Encoder):
         super().__init__(block_size)
         if not log2(block_size).is_integer():
             raise ValueError("block size must be a power of 2")
-        self.block_size = block_size
+        self.max_data_size = self.block_size - 1 - int(log2(self.block_size))
 
     def encode(self, data: str, block: list[int], verbose: bool = False):
-        max_data_length = self.block_size - 1 - int(log2(self.block_size))
+        if verbose:
+            print("Using Hamming Encoder")
 
-        if len(data) > max_data_length:
+        if len(data) > self.max_data_size:
             raise ValueError("Data is too long")
 
-        while len(data) < max_data_length:
+        while len(data) < self.max_data_size:
             data += '0'
 
         data_reversed = list(map(int, data[::-1]))

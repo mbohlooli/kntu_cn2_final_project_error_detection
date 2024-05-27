@@ -1,9 +1,6 @@
 from abc import ABC, abstractmethod
 from Encoder import Encoder
 
-HAMMING_ENCODE = "hamming"
-PARITY_2D_ENCODE = "parity_2d"
-
 
 class MessageBlock(ABC):
     def __init__(self, encoder: Encoder):

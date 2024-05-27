@@ -10,11 +10,11 @@ class Packetizer:
 
     def packetize(self, packet_data: str) -> list[MessageBlock]:
         bin_data = ''.join(format(ord(x), '08b') for x in packet_data)
-        data_in_packet_size = self.packet_size - 1 - int(log2(self.packet_size))
+        # data_in_packet_size = self.packet_size - 1 - int(log2(self.packet_size))
 
         data_chunks = []
-        for i in range(0, len(bin_data), data_in_packet_size):
-            data_chunks.append(bin_data[i:i + data_in_packet_size])
+        for i in range(0, len(bin_data), self.encoder.max_data_size):
+            data_chunks.append(bin_data[i:i + self.encoder.max_data_size])
 
         return list(map(lambda data: ArrayMessageBlock(data=data, encoder=self.encoder), data_chunks))
 
