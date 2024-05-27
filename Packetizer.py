@@ -1,12 +1,12 @@
 from MessageBlock import MessageBlock, ArrayMessageBlock
 from math import log2
+import Encoder
 
 
 class Packetizer:
-    def __init__(self, packet_size=16):
-        if not log2(packet_size).is_integer():
-            raise ValueError("Packet size must be a power of 2")
-        self.packet_size = packet_size
+    def __init__(self, encoder: Encoder):
+        self.encoder = encoder
+        self.packet_size = encoder.block_size
 
     def packetize(self, packet_data: str) -> list[MessageBlock]:
         bin_data = ''.join(format(ord(x), '08b') for x in packet_data)
@@ -16,7 +16,7 @@ class Packetizer:
         for i in range(0, len(bin_data), data_in_packet_size):
             data_chunks.append(bin_data[i:i + data_in_packet_size])
 
-        return list(map(lambda data: ArrayMessageBlock(data=data, block_size=self.packet_size), data_chunks))
+        return list(map(lambda data: ArrayMessageBlock(data=data, encoder=self.encoder), data_chunks))
 
     @staticmethod
     def de_packetize(packets: list[MessageBlock], fix_errors: bool = True, verbose: bool = False) -> str:
@@ -24,7 +24,7 @@ class Packetizer:
         for index, packet in enumerate(packets):
             if verbose:
                 print(f'Packet {index + 1} - ', end='')
-            if not packet.validate(verbose, fix_errors) and verbose:
+            if not packet.validate(fix_errors, verbose) and verbose:
                 print(f'Error {"fixed" if fix_errors else "at"} at packet {index + 1}')
             received_message_bin += packet.read()
 
