@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
         print(f'data of the packet: {received_message}')
     elif encoding == 'b':
-        packetizer = ReedSolomonPacketizer(SimpleEncoder(64))
+        packetizer = ReedSolomonPacketizer(SimpleEncoder(32))
         packets = packetizer.packetize(message)
 
         print(f'Divided the message into {len(packets)} packets.')

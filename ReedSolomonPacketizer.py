@@ -22,6 +22,7 @@ class ReedSolomonPacketizer(Packetizer):
         indexes = [i for i in range(len(numeric_values))]
 
         polynomial = lagrange(indexes, numeric_values)
+
         extra_packets = [
             int(polynomial(i)) for i in range(len(numeric_values), len(numeric_values) + self.max_fault)
         ]
@@ -30,13 +31,13 @@ class ReedSolomonPacketizer(Packetizer):
         next_index = len(numeric_values) - len(extra_packets)
         for i in range(self.max_fault):
             indexes.append(i + next_index)
+
         packets = []
         for index, value in zip(indexes, numeric_values):
             bin_value = format(value, f'0{self.encoder.block_size}b')
             packets.append(ArrayMessageBlock(self.encoder, bin_value, index))
 
         self.packets_count = len(packets)
-
         return packets
 
     def de_packetize(self, packets: list[MessageBlock], fix_errors: bool = True, verbose: bool = False) -> str:
@@ -71,6 +72,7 @@ class ReedSolomonPacketizer(Packetizer):
                         print(f'packet number {index+1} missing - reconstructing ...')
 
                     numeric_value = ceil(polynomial(index))
+                    numeric_values.insert(index, numeric_value)
                     bin_value = format(numeric_value, f'0{block_size}b')
                     if fix_errors:
                         packets_to_insert.append((index, ArrayMessageBlock(encoder, bin_value, index)))
