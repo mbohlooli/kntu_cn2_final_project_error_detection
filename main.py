@@ -17,9 +17,9 @@ if __name__ == '__main__':
 
         print(f'Divided the message into {len(packets)} packets.')
 
-        received_message = packetizer.de_packetize(packets, True, True)
-
-        print(f'data of the packet: {received_message}')
+        print(f'received data: {packetizer.de_packetize(packets, False, True)}')
+        received_message = packetizer.de_packetize(packets, True, False)
+        print(f'fixed data: {received_message}')
     elif encoding == 'b':
         packetizer = ReedSolomonPacketizer(SimpleEncoder(32))
         packets = packetizer.packetize(message)
@@ -28,9 +28,10 @@ if __name__ == '__main__':
 
         packets.pop(len(packets)-2)
 
-        received_message = packetizer.de_packetize(packets, True, True)
+        print(f'received data: {packetizer.de_packetize(packets, False, True)}')
+        received_message = packetizer.de_packetize(packets, True, False)
 
-        print(f'data of the packet: {received_message}')
+        print(f'fixed data: {received_message}')
     else:
         print('Invalid encoding')
 

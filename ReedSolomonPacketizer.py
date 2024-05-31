@@ -85,9 +85,7 @@ class ReedSolomonPacketizer(Packetizer):
 
         received_message_bin = ''
         for index, packet in enumerate(packets):
-            if verbose:
-                print(f'Packet {index + 1} - ', end='')
-            if not packet.validate(fix_errors, verbose) and verbose:
+            if not packet.validate(fix_errors, False) and verbose:
                 print(f'Error {"fixed" if fix_errors else "at"} at packet {index + 1}')
             if index < len(packets) - self.max_fault:
                 received_message_bin += packet.read()
